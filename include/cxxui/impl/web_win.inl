@@ -11,6 +11,8 @@
 
 namespace cxxui::detail {
 
+class DefaultWebWindow;
+
 using namespace Microsoft::WRL;
 
 /** 全局管理env, 创建webview */

@@ -2,8 +2,8 @@
 #include <string_view>
 
 #include <windows.h>
-#include <shellscalingapi.h>
-#pragma comment(lib, "Shcore.lib")  // GetDpiForMonitor
+
+#include <cxxui/impl/detail/shcore.hpp>
 
 namespace cxxui::detail {
 
@@ -52,14 +52,10 @@ protected:
         }
         HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
         // 获取屏幕DPI
-        UINT dpi_x, dpi_y;
-        if (FAILED(GetDpiForMonitor(monitor, MDT_DEFAULT, &dpi_x, &dpi_y))) {
-            dpi = GetDpiForSystem() / 96.0f;
-        } else {
-            dpi = dpi_x / 96.0f;
-        }
+        dpi = Shcore{}.GetDpiForMonitor(monitor) / 96.0f;
         // 获取屏幕区域
-        MONITORINFO mi = {sizeof(MONITORINFO)};
+        MONITORINFO mi{};
+        mi.cbSize = sizeof(MONITORINFO);
         if (!GetMonitorInfoW(monitor, &mi)) {
             screen = {0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)};
         } else {

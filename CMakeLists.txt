@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 project(cxxui VERSION 0.1.0 LANGUAGES CXX)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)
 endif()
@@ -19,6 +20,13 @@ endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE ${PROJECT_SOURCE_DIR}/include)
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} INTERFACE user32 dwmapi shcore shlwapi)
+    if(NOT MSVC AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_link_options(${PROJECT_NAME} INTERFACE -mwindows)
+    endif()
+endif()
+
 
 if(CXXUI_BUILD_EXAMPLES)
     add_subdirectory(examples)

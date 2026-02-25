@@ -5,7 +5,9 @@
 #include <wrl.h>
 #include <WebView2.h>
 #include <shlwapi.h>
-#pragma comment(lib, "Shlwapi.lib")  // SHCreateMemStream
+#ifdef _MSC_VER
+    #pragma comment(lib, "shlwapi.lib")  // SHCreateMemStream
+#endif
 
 #include <cxxui/win/error.hpp>
 #include <cxxui/impl/detail/string_coder.hpp>

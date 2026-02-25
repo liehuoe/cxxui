@@ -46,9 +46,9 @@ int main() {
      * 2. 窗口在鼠标所在屏幕居中显示
      */
     cxxui::Window<> main_win{cxxui::WindowOptions()
-                               .SetTitle("窗口显示在鼠标所在屏幕的居中位置")
-                               .SetWidth(400)
-                               .SetHeight(400)};
+                                 .SetTitle("窗口显示在鼠标所在屏幕的居中位置")
+                                 .SetWidth(400)
+                                 .SetHeight(400)};
     main_win.Show();
     /**
      * 1. Win32Window 继承 cxxui::Window 处理事件
@@ -61,7 +61,11 @@ int main() {
                               .SetX(100)
                               .SetY(100)};
     event_win.Show();
-    event_win.SetTitleColor({255, 150, 150});
+    try {
+        event_win.SetTitleColor({255, 150, 150});
+    } catch (const std::exception& e) {
+        fprintf(stderr, "SetTitleColor error: %s\n", e.what());
+    }
     /**
      * 1. 焦点在主窗口
      */

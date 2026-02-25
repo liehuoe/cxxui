@@ -83,6 +83,9 @@ protected:
     }
 };
 
+namespace detail {
+class DefaultJsMsgMap;
+}
 template <typename Derived = detail::DefaultJsMsgMap>
 class JsMsgMap : public JsMsgHandler<Derived> {
     friend class JsMsgHandler<Derived>;

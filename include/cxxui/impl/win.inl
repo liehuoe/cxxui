@@ -1,14 +1,17 @@
 #include <optional>
 
-#pragma comment(lib, "User32.lib")  // CreateWindow
 #include <dwmapi.h>
-#pragma comment(lib, "dwmapi.lib")  // DwmSetWindowAttribute
+#ifdef _MSC_VER
+    #pragma comment(lib, "user32.lib")  // CreateWindow
+    #pragma comment(lib, "dwmapi.lib")  // DwmSetWindowAttribute
+#endif
 /** 发布版本不显示控制台窗口 */
-#ifndef _DEBUG
+#if defined(_MSC_VER) && !defined(_DEBUG)
     #pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 #endif
 
 #include "detail/string_coder.hpp"
+#include "detail/user32.hpp"
 
 /** 定义窗口类名称, 用户可以定义该宏定义以覆盖默认值 */
 #ifndef CXXUI_WIN32_CLASS_NAME
@@ -16,6 +19,8 @@
 #endif
 
 namespace cxxui::detail {
+
+class DefaultWindow;
 
 void Exit(int exit_code = 0) noexcept { PostQuitMessage(exit_code); }
 
@@ -44,7 +49,7 @@ public:
             main_hwnd_ = reinterpret_cast<HWND>(-1);
         }
         // 设置DPI感知
-        SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+        User32{}.SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
         // 注册窗口类
         WNDCLASSEXW wc{};
         wc.cbSize = sizeof(WNDCLASSEXW);
@@ -167,11 +172,12 @@ protected:
         }
     }
     void SetIcon(std::uint32_t icon_id) {
-        LPARAM icon = LoadIcon(GetModuleHandle(nullptr), MAKEINTRESOURCE(icon_id));
+        HICON icon = LoadIcon(GetModuleHandle(nullptr), MAKEINTRESOURCE(icon_id));
+        LPARAM lp = reinterpret_cast<LPARAM>(icon);
         // 设置大图标（标题栏）
-        SendMessageW(hwnd_, WM_SETICON, ICON_BIG, icon);
+        SendMessageW(hwnd_, WM_SETICON, ICON_BIG, lp);
         // 设置小图标（任务栏、Alt+Tab）
-        SendMessageW(hwnd_, WM_SETICON, ICON_SMALL, icon);
+        SendMessageW(hwnd_, WM_SETICON, ICON_SMALL, lp);
     }
 
 protected:

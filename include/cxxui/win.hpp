@@ -62,7 +62,7 @@ public:
     void SetIcon(std::uint32_t icon_id) { Base::SetIcon(icon_id); }
 
 protected:
-    friend class Base;
+    friend class detail::WindowBase<Derived>;
     /**
      * @brief 窗口创建完成的事件
      */

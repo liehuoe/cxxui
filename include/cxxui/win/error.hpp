@@ -1,5 +1,5 @@
 #pragma once
-#include <exception>
+#include <stdexcept>
 
 namespace cxxui {
 
@@ -7,11 +7,11 @@ namespace cxxui {
  * @brief 窗口的异常定义
  *
  */
-class WindowError : public std::exception {
+class WindowError : public std::runtime_error {
 public:
     WindowError(long code, const char* msg)
-        : code_(code),
-          std::exception(msg) {}
+        : std::runtime_error(msg),
+          code_(code) {}
     long GetErrorCode() { return code_; }
 
 private:

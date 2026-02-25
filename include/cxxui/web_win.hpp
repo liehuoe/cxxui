@@ -86,7 +86,7 @@ public:
     }
 
 protected:
-    friend class Base;
+    friend class detail::WebWindowBase<Derived>;
     /**
      * @brief webview完成创建的事件
      */
