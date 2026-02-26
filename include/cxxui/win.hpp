@@ -5,7 +5,7 @@
 #include "win/error.hpp"
 #include "win/options.hpp"
 #include "win/event.hpp"
-#include "impl/win.inl"
+#include "win/impl/win.inl"
 
 namespace cxxui {
 

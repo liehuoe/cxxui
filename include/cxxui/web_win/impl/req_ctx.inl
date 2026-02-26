@@ -10,7 +10,7 @@
 #endif
 
 #include <cxxui/win/error.hpp>
-#include <cxxui/impl/detail/string_coder.hpp>
+#include <cxxui/core/detail/string_coder.hpp>
 
 namespace cxxui::detail {
 

@@ -7,7 +7,7 @@
 #include <WebView2.h>
 
 #include <cxxui/win.hpp>
-#include "detail/wm_msg.h"
+#include <cxxui/core/detail/wm_msg.h>
 
 namespace cxxui::detail {
 

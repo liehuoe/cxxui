@@ -5,7 +5,7 @@
     #pragma comment(lib, "shcore.lib")  // GetDpiForMonitor
 #endif
 
-#include "library.hpp"
+#include <cxxui/core/detail/library.hpp>
 
 namespace cxxui::detail {
 class Shcore {

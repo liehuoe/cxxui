@@ -1,9 +1,7 @@
 #include <limits>
 #include <string_view>
 
-#include <windows.h>
-
-#include <cxxui/impl/detail/shcore.hpp>
+#include "detail/shcore.hpp"
 
 namespace cxxui::detail {
 

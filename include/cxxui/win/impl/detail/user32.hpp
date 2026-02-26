@@ -1,6 +1,6 @@
 #pragma once
 
-#include "library.hpp"
+#include <cxxui/core/detail/library.hpp>
 
 namespace cxxui::detail {
 class User32 {

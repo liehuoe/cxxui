@@ -10,7 +10,7 @@
     #pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 #endif
 
-#include "detail/string_coder.hpp"
+#include <cxxui/core/detail/string_coder.hpp>
 #include "detail/user32.hpp"
 
 /** 定义窗口类名称, 用户可以定义该宏定义以覆盖默认值 */
