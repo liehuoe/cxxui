@@ -37,6 +37,13 @@ public:
         fprintf(stderr, "SizeEvent: [%d, %d]\n", event.GetWidth(), event.GetHeight());
         cxxui::Window<EventWindow>::OnSize(event);
     }
+    /**
+     * 4. 窗口激活或失去激活触发的事件
+     */
+    void OnActivate(const cxxui::ActivateEvent& event) {
+        fprintf(stderr, "ActivateEvent: %d\n", event.IsActive());
+        cxxui::Window<EventWindow>::OnActivate(event);
+    }
 };
 ;
 

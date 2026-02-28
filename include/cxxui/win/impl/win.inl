@@ -189,14 +189,22 @@ protected:
 protected:
     std::optional<LRESULT> OnWndProc(UINT msg, WPARAM wp, LPARAM lp) override final {
         switch (msg) {
-            case WM_CREATE:
+            case WM_CREATE: {
                 static_cast<Derived*>(this)->OnCreated();
                 break;
-            case WM_SIZE:
+            }
+            case WM_SIZE: {
                 SizeEvent event;
                 event.lp_ = lp;
                 static_cast<Derived*>(this)->OnSize(event);
                 break;
+            }
+            case WM_ACTIVATE: {
+                ActivateEvent event;
+                event.wp_ = wp;
+                static_cast<Derived*>(this)->OnActivate(event);
+                break;
+            }
             default:
                 break;
         }

@@ -71,6 +71,10 @@ protected:
      * @brief 窗口大小发生变化的事件
      */
     void OnSize(const SizeEvent&) {}
+    /**
+     * @brief 窗口激活或失去激活触发的事件
+     */
+    void OnActivate(const ActivateEvent&) {}
 };
 
 /**

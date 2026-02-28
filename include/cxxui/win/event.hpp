@@ -19,4 +19,16 @@ public:
     int GetHeight() const { return SizeEventBase::GetHeight(); }
 };
 
+/**
+ * @brief 窗口激活或失去激活触发的事件
+ */
+class ActivateEvent : public detail::ActivateEventBase {
+public:
+    /**
+     * @brief 获取窗口当前的激活状态
+     * @details 子类回调函数定义：void OnActivate(const cxxui::ActivateEvent&);
+     */
+    bool IsActive() const { return ActivateEventBase::IsActive(); }
+};
+
 }  // namespace cxxui

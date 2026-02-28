@@ -15,4 +15,15 @@ protected:
     LPARAM lp_;
 };
 
+class ActivateEventBase {
+    template <typename T>
+    friend class WindowBase;
+
+public:
+    bool IsActive() const { return LOWORD(wp_) != WA_INACTIVE; }
+
+protected:
+    WPARAM wp_;
+};
+
 }  // namespace cxxui::detail
