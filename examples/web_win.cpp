@@ -65,7 +65,7 @@ int main() {
     /**
      * 3. 响应js请求并返回响应
      */
-    cxxui::JsMsgMap<>& req_map = cxxui::JsMsgMap<>::GetSingleton();
+    cxxui::JsMsgMap<> req_map;
     req_map.bind("/count", [](cxxui::json& arg) {
         // 获取 { "count": number }
         int count = arg.at("count").get<int>() + 1;

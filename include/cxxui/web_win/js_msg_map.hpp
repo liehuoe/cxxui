@@ -51,7 +51,7 @@ protected:
          "data": ...
     }
      */
-    std::string Handle(std::string msg) const {
+    std::string Handle(std::string msg) const noexcept {
         json ctx;
         std::string url;
         try {
@@ -92,15 +92,6 @@ class JsMsgMap : public JsMsgHandler<Derived> {
 
 public:
     /**
-     * @brief 获取全局单例实例
-     *
-     * @return JsMsgMap&
-     */
-    static JsMsgMap& GetSingleton() {
-        static JsMsgMap instance;
-        return instance;
-    }
-    /**
      * @brief 绑定请求的url及其响应函数
      *
      * @param url 需要绑定的 url
@@ -114,7 +105,7 @@ public:
      *
      * @return std::function<std::string(std::string)>
      */
-    std::function<std::string(std::string)> GetHandler() {
+    std::function<std::string(std::string)> GetHandler() const noexcept {
         return [this](std::string msg) { return this->Handle(std::move(msg)); };
     }
 
