@@ -109,7 +109,7 @@ protected:
             throw WindowError(ERROR_INVALID_HANDLE, "Window is not created!");
         }
         MSG msg;
-        while (GetMessageW(&msg, nullptr, 0, 0)) {
+        while (GetMessageW(&msg, nullptr, 0, 0) > 0) {
             TranslateMessage(&msg);
             DispatchMessageW(&msg);
             if (msg.message != UM_WEB_CREATED || msg.hwnd != this->hwnd_) {
@@ -203,16 +203,21 @@ protected:
     }
     void SetRequestHandler(std::function<void(RequestContext& ctx)> handler,
                            std::string_view filter) {
+        ComPtr<ICoreWebView2> webview = GetWebView();
+
         ComPtr<ICoreWebView2_22> webview22;
-        HRESULT hr = GetWebView().As<ICoreWebView2_22>(&webview22);
-        if (FAILED(hr)) {
-            throw WindowError(hr, "get_CoreWebView2_22 failed!");
+        HRESULT hr = webview.As<ICoreWebView2_22>(&webview22);
+        if (SUCCEEDED(hr)) {
+            webview22->AddWebResourceRequestedFilterWithRequestSourceKinds(
+                detail::U82W(filter).c_str(),
+                COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL,
+                COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_ALL);
+        } else {
+            // 退化到旧版本
+            webview->AddWebResourceRequestedFilter(detail::U82W(filter).c_str(),
+                                                   COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
         }
-        webview22->AddWebResourceRequestedFilterWithRequestSourceKinds(
-            detail::U82W(filter).c_str(),
-            COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL,
-            COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_ALL);
-        webview22->add_WebResourceRequested(
+        webview->add_WebResourceRequested(
             Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                 [this, handler = std::move(handler)](
                     ICoreWebView2*, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
