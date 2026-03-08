@@ -116,14 +116,14 @@ public:
 
 protected:
     int Run() noexcept {
-        // 设置主窗口
-        detail::WinFactory::SetMainWindow(hwnd_);
+        detail::WinFactory::SetMainWindow(hwnd_);  // 设置主窗口
         // 消息循环
         MSG msg;
-        while (GetMessage(&msg, NULL, 0, 0)) {
+        while (GetMessageW(&msg, NULL, 0, 0) > 0) {
             TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            DispatchMessageW(&msg);
         }
+        detail::WinFactory::SetMainWindow(nullptr);  // 置空，防止重复发送WM_QUIT
         return static_cast<int>(msg.wParam);
     }
     void Exit(int exit_code) noexcept { PostQuitMessage(exit_code); }
