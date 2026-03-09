@@ -22,14 +22,15 @@ target_link_libraries(<your_target> PRIVATE cxxui)
 
 ## 示例
 
-见 [Examples](https://github.com/liehuoe/cxxui/tree/main/examples)
+- [Examples](https://github.com/liehuoe/cxxui/tree/main/examples)
+- [WeiXins - 微信多开助手](https://github.com/liehuoe/WeiXins)
 
 ## 最后
 
-- 我是一名普通的个人开发者，商业合作请加微信
+- 我是一名独立的个人开发者，商业合作请加微信
 
 ![微信](./docs/images/weixin.jpg)
 
-- 如果你觉得这个项目不错，请作者喝杯咖啡
+- 如果你觉得这个项目不错，请打赏支持一下作者的独立开发工作
 
 ![打赏](./docs/images/coffee.jpg)
