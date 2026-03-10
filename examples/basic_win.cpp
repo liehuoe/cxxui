@@ -4,7 +4,7 @@ class EventWindow : public cxxui::Window<EventWindow> {
 public:
     using Window::Window;
     /**
-     * 1. 处理win32消息, 手动处理win32消息会失去跨平台性
+     * 处理win32消息, 手动处理win32消息会失去跨平台性
      */
     std::optional<LRESULT> OnWin32Msg(UINT msg, WPARAM wp, LPARAM) {
         switch (msg) {
@@ -24,33 +24,32 @@ public:
         return std::nullopt;
     }
     /**
-     * 2. 窗口创建完成的事件
+     * 窗口创建完成的事件
      */
     void OnCreated() {
         fprintf(stderr, "CreatedEvent\n");
         cxxui::Window<EventWindow>::OnCreated();
     }
     /**
-     * 3. 窗口大小发生变化的事件
+     * 窗口大小发生变化的事件
      */
     void OnSize(const cxxui::SizeEvent& event) {
         fprintf(stderr, "SizeEvent: [%d, %d]\n", event.GetWidth(), event.GetHeight());
         cxxui::Window<EventWindow>::OnSize(event);
     }
     /**
-     * 4. 窗口激活或失去激活触发的事件
+     * 窗口激活或失去激活触发的事件
      */
     void OnActivate(const cxxui::ActivateEvent& event) {
         fprintf(stderr, "ActivateEvent: %d\n", event.IsActive());
         cxxui::Window<EventWindow>::OnActivate(event);
     }
 };
-;
 
 int main() {
     /**
-     * 1. DPI不为100%时按DPI比例缩放窗口
-     * 2. 窗口在鼠标所在屏幕居中显示
+     * DPI不为100%时按DPI比例缩放窗口
+     * 窗口在鼠标所在屏幕居中显示
      */
     cxxui::Window<> main_win{cxxui::WindowOptions()
                                  .SetTitle("窗口显示在鼠标所在屏幕的居中位置")
@@ -58,7 +57,7 @@ int main() {
                                  .SetHeight(400)};
     main_win.Show();
     /**
-     * 1. Win32Window 继承 cxxui::Window 处理事件
+     * Win32Window 继承 cxxui::Window 处理事件
      */
     EventWindow event_win{cxxui::WindowOptions()
                               .SetTitle("处理事件的窗口")
@@ -74,11 +73,11 @@ int main() {
         fprintf(stderr, "SetTitleColor error: %s\n", e.what());
     }
     /**
-     * 1. 焦点在主窗口
+     * 焦点在主窗口
      */
     main_win.Focus();
     /**
-     * 1. 调用Run()的窗口为主窗口, 主窗口关闭整个进程关闭
+     * 调用Run()的窗口为主窗口, 主窗口关闭整个进程关闭
      */
     return main_win.Run();
 }

@@ -9,6 +9,13 @@
 #include <cxxui/win.hpp>
 #include <cxxui/core/detail/wm_msg.h>
 
+/** 定义 webview2 runtime 的目录，以制作便携版。
+ * 如果目录不存在，则退化为查找系统安装的 webview2 runtime
+ */
+#ifndef CXXUI_WEBVIEW2_DIR
+    #define CXXUI_WEBVIEW2_DIR "./webview2"
+#endif
+
 namespace cxxui::detail {
 
 class DefaultWebWindow;
@@ -56,8 +63,9 @@ public:
         // env 创建完成后在 OnEnvCreated 处理 queue
         queue_ = std::make_unique<std::vector<QueueData>>();
         queue_->emplace_back(QueueData{hwnd, callback});
+        std::filesystem::path webview2_dir = GetWebView2Dir();
         HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
-            nullptr,
+            std::filesystem::exists(webview2_dir) ? webview2_dir.c_str() : nullptr,
             udf.c_str(),
             nullptr,
             Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(OnEnvCreated)
@@ -67,6 +75,17 @@ public:
             return hr;
         }
         return S_OK;
+    }
+    std::filesystem::path GetWebView2Dir() {
+        std::filesystem::path dir;
+        if constexpr (CXXUI_WEBVIEW2_DIR[0] == '.') {
+            wchar_t exe_path[MAX_PATH]{};
+            GetModuleFileNameW(nullptr, exe_path, MAX_PATH - 1);
+            dir = std::filesystem::path(exe_path).parent_path() / detail::U82W(CXXUI_WEBVIEW2_DIR);
+        } else {
+            dir = detail::U82W(CXXUI_WEBVIEW2_DIR);
+        }
+        return dir;
     }
 
 private:

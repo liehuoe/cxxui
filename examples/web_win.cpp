@@ -1,6 +1,13 @@
 #include <cxxui/web_win.hpp>
 #include <cxxui/web_win/js_msg_map.hpp>
 
+/**
+ * 定义 webview2 runtime 的安装目录，默认为 "./webview2"
+ * 这样打包发布时可以附带 webview2 runtime，不需要用户系统安装 webview2 runtime
+ * 如果检测 CXXUI_WEBVIEW2_DIR 不存在则会查找系统安装的 webview2 runtime
+ */
+#define CXXUI_WEBVIEW2_DIR "./webview2_runtime"
+
 constexpr std::string_view HTML = R"html(
 <html>
     <head>
@@ -35,7 +42,7 @@ class EventWebWindow : public cxxui::WebWindow<EventWebWindow> {
 public:
     using WebWindow::WebWindow;
     /**
-     * 1. webview创建完成
+     * webview创建完成
      */
     void OnWebCreated(std::optional<cxxui::WindowError> err) {
         if (err) {
@@ -51,11 +58,11 @@ int main() {
     EventWebWindow web_win{
         cxxui::WindowOptions().SetTitle("WebWindow").SetWidth(400).SetHeight(400)};
     /**
-     * 1. 进行WebWindow相关的操作前需要等待webview2创建完成
+     * 进行WebWindow相关的操作前需要等待webview2创建完成
      */
     web_win.WaitWebCreated();
     /**
-     * 2. 通过拦截请求返回响应的html字符串
+     * 通过拦截请求返回响应的html字符串
      */
     web_win.SetRequestHandler([](cxxui::RequestContext& ctx) {
         fprintf(stderr, "url: %s\n", ctx.GetUrl().c_str());
@@ -63,7 +70,7 @@ int main() {
         ctx.SetResponse(HTML.data(), HTML.size());
     });
     /**
-     * 3. 响应js请求并返回响应
+     * 响应js请求并返回响应
      */
     cxxui::JsMsgMap<> req_map;
     req_map.bind("/count", [](cxxui::json& arg) {
