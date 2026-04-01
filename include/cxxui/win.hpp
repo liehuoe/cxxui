@@ -75,6 +75,10 @@ protected:
      * @brief 窗口激活或失去激活触发的事件
      */
     void OnActivate(const ActivateEvent&) {}
+    /**
+     * @brief 修改系统设置触发的事件
+     */
+    void OnSetting(const SettingEvent&) {}
 };
 
 /**
@@ -83,6 +87,7 @@ protected:
  * @param exit_code 退出码, 程序执行的返回值， 默认为 0
  */
 inline void Exit(int exit_code = 0) noexcept { detail::Exit(exit_code); }
+inline bool IsDarkMode() noexcept { return detail::IsDarkMode(); }
 
 namespace detail {
 class DefaultWindow : public Window<DefaultWindow> {};

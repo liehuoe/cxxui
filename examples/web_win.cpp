@@ -1,12 +1,12 @@
-#include <cxxui/web_win.hpp>
-#include <cxxui/web_win/js_msg_map.hpp>
-
 /**
  * 定义 webview2 runtime 的安装目录，默认为 "./webview2"
  * 这样打包发布时可以附带 webview2 runtime，不需要用户系统安装 webview2 runtime
  * 如果检测 CXXUI_WEBVIEW2_DIR 不存在则会查找系统安装的 webview2 runtime
  */
 #define CXXUI_WEBVIEW2_DIR "./webview2_runtime"
+
+#include <cxxui/web_win.hpp>
+#include <cxxui/web_win/js_msg_map.hpp>
 
 constexpr std::string_view HTML = R"html(
 <html>

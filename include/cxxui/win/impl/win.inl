@@ -1,5 +1,6 @@
 #include <optional>
 
+#include <winreg.h>
 #include <dwmapi.h>
 #ifdef _MSC_VER
     #pragma comment(lib, "user32.lib")  // CreateWindow
@@ -23,6 +24,25 @@ namespace cxxui::detail {
 class DefaultWindow;
 
 void Exit(int exit_code = 0) noexcept { PostQuitMessage(exit_code); }
+bool IsDarkMode() noexcept {
+    bool result = false;
+    HKEY hkey;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER,
+                      L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                      0,
+                      KEY_READ,
+                      &hkey) != ERROR_SUCCESS) {
+        return result;
+    }
+    DWORD type, val, size = sizeof(DWORD);
+    if (RegQueryValueExW(
+            hkey, L"AppsUseLightTheme", NULL, &type, reinterpret_cast<LPBYTE>(&val), &size) ==
+        ERROR_SUCCESS) {
+        result = (val == 0);  // 0 = Dark, 1 = Light
+    }
+    RegCloseKey(hkey);
+    return result;
+}
 
 class WndProcBase {
     friend class WinFactory;
@@ -203,6 +223,15 @@ protected:
                 ActivateEvent event;
                 event.wp_ = wp;
                 static_cast<Derived*>(this)->OnActivate(event);
+                break;
+            }
+            case WM_SETTINGCHANGE: {
+                if (!lp) {
+                    break;
+                }
+                SettingEvent event;
+                event.name_ = reinterpret_cast<LPWSTR>(lp);
+                static_cast<Derived*>(this)->OnSetting(event);
                 break;
             }
             default:

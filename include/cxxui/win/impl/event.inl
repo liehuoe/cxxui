@@ -26,4 +26,15 @@ protected:
     WPARAM wp_;
 };
 
+class SettingEventBase {
+    template <typename T>
+    friend class WindowBase;
+
+public:
+    bool IsColorThemeChanged() const { return name_ == L"ImmersiveColorSet"; }
+
+protected:
+    std::wstring_view name_;
+};
+
 }  // namespace cxxui::detail

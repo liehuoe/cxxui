@@ -44,9 +44,23 @@ public:
         fprintf(stderr, "ActivateEvent: %d\n", event.IsActive());
         cxxui::Window<EventWindow>::OnActivate(event);
     }
+    /**
+     * 修改系统设置触发的事件
+     */
+    void OnSetting(const cxxui::SettingEvent& event) {
+        const char* fmt_str = R"(SettingEvent:
+    ColorThemeChanged: %d
+)";
+        fprintf(stderr, fmt_str, event.IsColorThemeChanged());
+        cxxui::Window<EventWindow>::OnSetting(event);
+    }
 };
 
 int main() {
+    /**
+     * 判断系统是否正在使用深色模式
+     */
+    fprintf(stderr, "IsDarkMode: %d\n", cxxui::IsDarkMode());
     /**
      * DPI不为100%时按DPI比例缩放窗口
      * 窗口在鼠标所在屏幕居中显示
