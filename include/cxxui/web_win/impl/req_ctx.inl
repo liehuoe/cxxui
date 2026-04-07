@@ -16,12 +16,12 @@ namespace cxxui::detail {
 
 using namespace Microsoft::WRL;
 
-class RequestContextBase {
+class WebRequestBase {
     template <typename T>
     friend class WebWindowBase;
 
 protected:
-    RequestContextBase(ICoreWebView2WebResourceRequestedEventArgs* args,
+    WebRequestBase(ICoreWebView2WebResourceRequestedEventArgs* args,
                        ICoreWebView2Environment* env)
         : args_(args),
           env_(env) {

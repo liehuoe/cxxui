@@ -3,9 +3,9 @@
 
 namespace cxxui {
 
-class RequestContext : public detail::RequestContextBase {
-    using Base = detail::RequestContextBase;
-    using Base::RequestContextBase;
+class WebRequest : public detail::WebRequestBase {
+    using Base = detail::WebRequestBase;
+    using Base::WebRequestBase;
 
 public:
     /**
@@ -54,9 +54,7 @@ public:
      * @param file_path 响应文件路径，程序将读取路径的文件内容并响应
      * @param status_code 响应码，默认200
      */
-    void SetResponse(std::string_view file_path) {
-        Base::SetResponse(file_path);
-    }
+    void SetResponse(std::string_view file_path) { Base::SetResponse(file_path); }
 };
 
 }  // namespace cxxui

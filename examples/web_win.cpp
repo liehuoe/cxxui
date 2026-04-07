@@ -64,7 +64,7 @@ int main() {
     /**
      * 通过拦截请求返回响应的html字符串
      */
-    web_win.SetRequestHandler([](cxxui::RequestContext& ctx) {
+    web_win.OnWebRequest([](cxxui::WebRequest& ctx) {
         fprintf(stderr, "url: %s\n", ctx.GetUrl().c_str());
         ctx.SetHeaders(std::string{ctx.GetContentType("html")});
         ctx.SetResponse(HTML.data(), HTML.size());
@@ -79,7 +79,7 @@ int main() {
         // 在当前值的基础上 + 1 并返回
         return cxxui::json{{"count", count}};
     });
-    web_win.SetJsMsgHandler(req_map.GetHandler());
+    web_win.OnJsMsg(req_map.GetHandler());
 
     web_win.SetUrl("http://localhost");
     web_win.Show();

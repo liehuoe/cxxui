@@ -55,7 +55,7 @@ public:
      *                js 通过 window.OnCppMsg(handler: (data: any) => void) 接收 C++ 的消息
      */
     using JsMsgHandler = std::function<std::string(std::string)>;
-    void SetJsMsgHandler(JsMsgHandler handler) { Base::SetJsMsgHandler(std::move(handler)); }
+    void OnJsMsg(JsMsgHandler handler) { Base::OnJsMsg(std::move(handler)); }
     /**
      * @brief 发送消息给 javascript
      */
@@ -80,9 +80,8 @@ public:
      * @param filter 需要拦截的匹配URL
      * filter字符串格式参考：https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2_22?view=webview2-1.0.3719.77&viewFallbackFrom=webview2-1.0.2484.35&spm=5176.28103460.0.0.7ce17551NJ6vBi#addwebresourcerequestedfilterwithrequestsourcekinds
      */
-    using RequestHandler = std::function<void(RequestContext&)>;
-    void SetRequestHandler(RequestHandler handler, std::string_view filter = "*") {
-        Base::SetRequestHandler(handler, filter);
+    void OnWebRequest(std::function<void(WebRequest&)> handler, std::string_view filter = "*") {
+        Base::OnWebRequest(handler, filter);
     }
 
 protected:
