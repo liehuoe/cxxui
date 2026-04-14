@@ -57,12 +57,13 @@ protected:
 
 class WinFactory {
 public:
+    using WndProcFn = LRESULT(CALLBACK*)(HWND, UINT, WPARAM, LPARAM);
     /**
      * @brief 窗口初始化函数, 整个进程运行过程只初始化一次
      *
      * @return bool 初始化成功返回true, 失败返回false
      */
-    static bool Init() {
+    static bool Init(WndProcFn wnd_proc = WndProc) {
         if (main_hwnd_ != 0) {
             return true;
         } else {
@@ -74,17 +75,15 @@ public:
         WNDCLASSEXW wc{};
         wc.cbSize = sizeof(WNDCLASSEXW);
         wc.style = CS_HREDRAW | CS_VREDRAW;                             // 窗口水平、垂直重绘
-        wc.lpfnWndProc = WndProc;                                       // 指定窗口过程函数
+        wc.lpfnWndProc = wnd_proc;                                      // 指定窗口过程函数
         wc.hInstance = GetModuleHandle(nullptr);                        // 应用程序实例句柄
         wc.hCursor = LoadCursor(nullptr, IDC_ARROW);                    // 使用系统默认的箭头光标
         wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);  // 默认背景颜色
         wc.lpszClassName = CXXUI_WIN32_CLASS_NAME;                      // 窗口类名
         return RegisterClassExW(&wc);
     }
+    /** 设置主函数窗口句柄 */
     static void SetMainWindow(HWND hwnd) { main_hwnd_ = hwnd; }
-
-private:
-    inline static HWND main_hwnd_ = 0;
     /** 消息处理函数 */
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         WndProcBase* win;
@@ -123,6 +122,9 @@ private:
         }
         return result ? result.value() : DefWindowProcW(hwnd, msg, wp, lp);
     }
+
+private:
+    inline static HWND main_hwnd_ = 0;
 };
 
 template <typename Derived>

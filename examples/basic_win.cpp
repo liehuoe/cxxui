@@ -56,7 +56,23 @@ public:
     }
 };
 
+LRESULT CALLBACK MyWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    switch (msg) {
+        case WM_CREATE:
+            fprintf(stderr, "MyWndProc: WM_CREATE\n");
+            break;
+        default:
+            break;
+    }
+    // 调用WinFactory的WndProc, 保证 GUI 库的正常运行
+    return cxxui::detail::WinFactory::WndProc(hwnd, msg, wp, lp);
+}
+
 int main() {
+    /**
+     * 对于 Win32, 用户可以自定义窗口过程函数
+     */
+    cxxui::detail::WinFactory::Init(MyWndProc);
     /**
      * 判断系统是否正在使用深色模式
      */
