@@ -5,7 +5,7 @@ namespace cxxui {
 
 /**
  * @brief 窗口大小发生变化的事件
- * @details 子类回调函数定义：void OnSize(const cxxui::SizeEvent&);
+ * @details 子类回调函数定义：void OnSize(cxxui::SizeEvent&);
  */
 class SizeEvent : public detail::SizeEventBase {
 public:
@@ -21,7 +21,7 @@ public:
 
 /**
  * @brief 窗口激活或失去激活触发的事件
- * @details 子类回调函数定义：void OnActivate(const cxxui::ActivateEvent&);
+ * @details 子类回调函数定义：void OnActivate(cxxui::ActivateEvent&);
  */
 class ActivateEvent : public detail::ActivateEventBase {
 public:
@@ -33,7 +33,7 @@ public:
 
 /**
  * @brief 修改系统设置触发的事件
- * @details 子类回调函数定义：void OnSetting(const cxxui::SettingEvent&);
+ * @details 子类回调函数定义：void OnSetting(cxxui::SettingEvent&);
  */
 class SettingEvent : public detail::SettingEventBase {
 public:
@@ -41,6 +41,18 @@ public:
      * @brief 是否颜色主题发生变化
      */
     bool IsColorThemeChanged() const { return SettingEventBase::IsColorThemeChanged(); }
+};
+
+/**
+ * @brief 用户关闭窗口时触发的事件
+ * @details 子类回调函数定义：void OnClosing(cxxui::ClosingEvent&);
+ */
+class ClosingEvent : public detail::ClosingEventBase {
+public:
+    /**
+     * @brief 是否阻止窗口关闭
+     */
+    void PreventClose() { ClosingEventBase::PreventClose(); }
 };
 
 }  // namespace cxxui

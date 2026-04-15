@@ -219,7 +219,7 @@ window.SetCppMsgHandler = function (handler) {
         settings9->put_AreBrowserAcceleratorKeysEnabled(false);
 #endif
     }
-    void OnSize(const SizeEvent& event) {
+    void OnSize(SizeEvent& event) {
         if (ctrl_) {
             ctrl_->put_Bounds({0, 0, event.GetWidth(), event.GetHeight()});
         }

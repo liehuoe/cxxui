@@ -68,17 +68,25 @@ protected:
      */
     void OnCreated() {}
     /**
+     * @brief 用户关闭窗口时触发的事件
+     */
+    void OnClosing(ClosingEvent&) {}
+    /**
+     * @brief 窗口被关闭时触发的事件
+     */
+    void OnClosed() {}
+    /**
      * @brief 窗口大小发生变化的事件
      */
-    void OnSize(const SizeEvent&) {}
+    void OnSize(SizeEvent&) {}
     /**
      * @brief 窗口激活或失去激活触发的事件
      */
-    void OnActivate(const ActivateEvent&) {}
+    void OnActivate(ActivateEvent&) {}
     /**
      * @brief 修改系统设置触发的事件
      */
-    void OnSetting(const SettingEvent&) {}
+    void OnSetting(SettingEvent&) {}
 };
 
 /**

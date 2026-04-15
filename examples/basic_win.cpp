@@ -31,23 +31,42 @@ public:
         cxxui::Window<EventWindow>::OnCreated();
     }
     /**
+     * 用户关闭窗口时触发的事件
+     */
+    void OnClosing(cxxui::ClosingEvent& event) {
+        static int count = 0;
+        ++count;
+        fprintf(stderr, "ClosingEvent, count: %d\n", count);
+        if (count < 2) {
+            event.PreventClose();
+        }
+        cxxui::Window<EventWindow>::OnClosing(event);
+    }
+    /**
+     * 窗口被关闭时触发的事件
+     */
+    void OnClosed() {
+        fprintf(stderr, "ClosedEvent\n");
+        cxxui::Window<EventWindow>::OnClosed();
+    }
+    /**
      * 窗口大小发生变化的事件
      */
-    void OnSize(const cxxui::SizeEvent& event) {
+    void OnSize(cxxui::SizeEvent& event) {
         fprintf(stderr, "SizeEvent: [%d, %d]\n", event.GetWidth(), event.GetHeight());
         cxxui::Window<EventWindow>::OnSize(event);
     }
     /**
      * 窗口激活或失去激活触发的事件
      */
-    void OnActivate(const cxxui::ActivateEvent& event) {
+    void OnActivate(cxxui::ActivateEvent& event) {
         fprintf(stderr, "ActivateEvent: %d\n", event.IsActive());
         cxxui::Window<EventWindow>::OnActivate(event);
     }
     /**
      * 修改系统设置触发的事件
      */
-    void OnSetting(const cxxui::SettingEvent& event) {
+    void OnSetting(cxxui::SettingEvent& event) {
         const char* fmt_str = R"(SettingEvent:
     ColorThemeChanged: %d
 )";

@@ -215,6 +215,18 @@ protected:
                 static_cast<Derived*>(this)->OnCreated();
                 break;
             }
+            case WM_CLOSE: {
+                ClosingEvent event;
+                static_cast<Derived*>(this)->OnClosing(event);
+                if (!event.close_) {
+                    return 0;
+                }
+                break;
+            }
+            case WM_DESTROY: {
+                static_cast<Derived*>(this)->OnClosed();
+                break;
+            }
             case WM_SIZE: {
                 SizeEvent event;
                 event.lp_ = lp;

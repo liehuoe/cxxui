@@ -37,4 +37,15 @@ protected:
     std::wstring_view name_;
 };
 
+class ClosingEventBase {
+    template <typename T>
+    friend class WindowBase;
+
+public:
+    void PreventClose() { close_ = false; }
+
+protected:
+    bool close_ = true;
+};
+
 }  // namespace cxxui::detail
