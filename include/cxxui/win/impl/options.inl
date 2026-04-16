@@ -23,6 +23,9 @@ protected:
     void SetScale(bool scale) { scale_ = scale; }
     bool GetScale() const { return scale_; }
 
+    void SetStyleDefault() { style_ = WS_OVERLAPPEDWINDOW; }
+    void SetStylePopup() { style_ = WS_POPUPWINDOW; }
+
 protected:
     /** 窗口标题 */
     std::string_view title_ = "";

@@ -75,6 +75,24 @@ public:
         return *this;
     }
     bool GetScale() const { return WindowOptionsBase::GetScale(); }
+    /**
+     * @brief 设置窗口样式为默认
+     *
+     * @return WindowOptions&
+     */
+    WindowOptions& SetStyleDefault() {
+        WindowOptionsBase::SetStyleDefault();
+        return *this;
+    }
+    /**
+     * @brief 设置窗口样式为弹出式
+     *
+     * @return WindowOptions&
+     */
+    WindowOptions& SetStylePopup() {
+        WindowOptionsBase::SetStylePopup();
+        return *this;
+    }
 };
 
 }  // namespace cxxui

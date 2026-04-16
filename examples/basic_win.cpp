@@ -100,27 +100,28 @@ int main() {
      * DPI不为100%时按DPI比例缩放窗口
      * 窗口在鼠标所在屏幕居中显示
      */
-    cxxui::Window<> main_win{cxxui::WindowOptions()
+    cxxui::Window<> main_win{cxxui::WindowOptions{}
                                  .SetTitle("窗口显示在鼠标所在屏幕的居中位置")
                                  .SetWidth(400)
                                  .SetHeight(400)};
+    try {
+        main_win.SetTitleColor({255, 150, 150});
+    } catch (const std::exception& e) {
+        fprintf(stderr, "SetTitleColor error: %s\n", e.what());
+    }
     main_win.Show();
     /**
      * Win32Window 继承 cxxui::Window 处理事件
      */
-    EventWindow event_win{cxxui::WindowOptions()
+    EventWindow event_win{cxxui::WindowOptions{}
                               .SetTitle("处理事件的窗口")
                               .SetWidth(400)
                               .SetHeight(400)
                               .SetScale(false)  // 固定窗口大小为用户设置的值, 不缩放
                               .SetX(100)
-                              .SetY(100)};
+                              .SetY(100)
+                              .SetStylePopup()};
     event_win.Show();
-    try {
-        event_win.SetTitleColor({255, 150, 150});
-    } catch (const std::exception& e) {
-        fprintf(stderr, "SetTitleColor error: %s\n", e.what());
-    }
     /**
      * 焦点在主窗口
      */
