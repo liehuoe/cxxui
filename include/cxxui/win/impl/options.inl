@@ -26,7 +26,7 @@ protected:
     void SetStyleDefault() { style_ = WS_OVERLAPPEDWINDOW; }
     void SetStylePopup() {
         style_ = WS_POPUPWINDOW;
-        ex_style_ = WS_EX_TOOLWINDOW;
+        ex_style_ = WS_EX_TOOLWINDOW | WS_EX_LAYERED;
     }
 
 protected:
