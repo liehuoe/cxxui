@@ -172,7 +172,7 @@ protected:
             throw WindowError(GetLastError(), "CreateWindowEx failed!");
         }
     }
-    void Show(bool show) const {
+    void Show(bool show) {
         if (!hwnd_) {
             throw WindowError(ERROR_INVALID_HANDLE, "Window is not created!");
         }
