@@ -24,7 +24,10 @@ protected:
     bool GetScale() const { return scale_; }
 
     void SetStyleDefault() { style_ = WS_OVERLAPPEDWINDOW; }
-    void SetStylePopup() { style_ = WS_POPUPWINDOW; }
+    void SetStylePopup() {
+        style_ = WS_POPUPWINDOW;
+        ex_style_ = WS_EX_TOOLWINDOW;
+    }
 
 protected:
     /** 窗口标题 */

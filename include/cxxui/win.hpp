@@ -33,7 +33,7 @@ public:
      *
      * @param is_show 是否显示, 默认显示
      */
-    void Show(bool is_show = true) const noexcept { Base::Show(is_show); }
+    void Show(bool is_show = true) { Base::Show(is_show); }
     /**
      * @brief 关闭窗口
      */
