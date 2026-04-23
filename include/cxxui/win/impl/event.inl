@@ -1,3 +1,4 @@
+#include <string_view>
 #include <type_traits>
 #include <windows.h>
 

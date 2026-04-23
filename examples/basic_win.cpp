@@ -3,6 +3,12 @@
 class EventWindow : public cxxui::Window<EventWindow> {
 public:
     using Window::Window;
+
+private:
+    /**
+     * 友元声明，让基类能调用private或protected中的事件回调函数
+     */
+    CXXUI_WIN_EVENT(EventWindow)
     /**
      * 处理win32消息, 手动处理win32消息会失去跨平台性
      */

@@ -41,6 +41,9 @@ constexpr std::string_view HTML = R"html(
 class EventWebWindow : public cxxui::WebWindow<EventWebWindow> {
 public:
     using WebWindow::WebWindow;
+
+private:
+    CXXUI_WEB_EVENT(EventWebWindow)
     /**
      * webview创建完成
      */

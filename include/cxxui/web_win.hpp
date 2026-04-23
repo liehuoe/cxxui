@@ -2,6 +2,9 @@
 #include "web_win/req_ctx.hpp"
 #include "web_win/impl/web_win.inl"
 
+/** WebWindow的事件友元类定义, 声明该类为友元类可以把事件回调函数放到private作用域中 */
+#define CXXUI_WEB_EVENT(Derived) friend class cxxui::detail::WebWindowBase<Derived>;
+
 namespace cxxui {
 
 template <typename Derived = detail::DefaultWebWindow>
@@ -85,7 +88,7 @@ public:
     }
 
 protected:
-    friend class detail::WebWindowBase<Derived>;
+    CXXUI_WEB_EVENT(Derived)
     /**
      * @brief webview完成创建的事件
      */

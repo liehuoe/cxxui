@@ -7,6 +7,9 @@
 #include "win/event.hpp"
 #include "win/impl/win.inl"
 
+/** Window的事件友元类定义, 声明该类为友元类可以把事件回调函数放到private作用域中 */
+#define CXXUI_WIN_EVENT(Derived) friend class cxxui::detail::WindowBase<Derived>;
+
 namespace cxxui {
 
 template <typename Derived = detail::DefaultWindow>
@@ -62,7 +65,7 @@ public:
     void SetIcon(std::uint32_t icon_id) { Base::SetIcon(icon_id); }
 
 protected:
-    friend class detail::WindowBase<Derived>;
+    CXXUI_WIN_EVENT(Derived)
     /**
      * @brief 窗口创建完成的事件
      */
