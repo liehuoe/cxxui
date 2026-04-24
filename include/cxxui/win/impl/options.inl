@@ -23,7 +23,10 @@ protected:
     void SetScale(bool scale) { scale_ = scale; }
     bool GetScale() const { return scale_; }
 
-    void SetStyleDefault() { style_ = WS_OVERLAPPEDWINDOW; }
+    void SetStyleDefault() {
+        style_ = WS_OVERLAPPEDWINDOW;
+        ex_style_ = 0;
+    }
     void SetStylePopup() {
         style_ = WS_POPUPWINDOW;
         ex_style_ = WS_EX_TOOLWINDOW | WS_EX_LAYERED;

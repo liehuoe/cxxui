@@ -12,9 +12,6 @@ constexpr std::string_view HTML = R"html(
 <html>
     <head>
         <link rel="icon" href="data:," />
-        <style>
-            * { background: white; }
-        </style>
         <script>
             function onClick() {
                 // 点击按钮发送当前值给C++
@@ -64,6 +61,10 @@ int main() {
      * 进行WebWindow相关的操作前需要等待webview2创建完成
      */
     web_win.WaitWebCreated();
+    /**
+     * 设置 html 的默认背景颜色
+     */
+    web_win.SetBackground({255, 150, 150});
     /**
      * 通过拦截请求返回响应的html字符串
      */

@@ -12,22 +12,21 @@ private:
     /**
      * 处理win32消息, 手动处理win32消息会失去跨平台性
      */
-    std::optional<LRESULT> OnWin32Msg(UINT msg, WPARAM wp, LPARAM) {
+    std::optional<LRESULT> OnWin32Msg(UINT msg, WPARAM wp, LPARAM lp) {
         switch (msg) {
             // 设置背景颜色为红色
             case WM_ERASEBKGND: {
-                HDC hdc = (HDC)wp;
+                HDC hdc = reinterpret_cast<HDC>(wp);
                 RECT rc;
                 GetClientRect(hwnd_, &rc);
-                HBRUSH brush = CreateSolidBrush(RGB(255, 150, 150));
+                static HBRUSH brush = CreateSolidBrush(RGB(255, 150, 150));
                 FillRect(hdc, &rc, brush);
-                DeleteObject(brush);
-                return true;
+                return TRUE;
             }
             default:
                 break;
         }
-        return std::nullopt;
+        return cxxui::Window<EventWindow>::OnWin32Msg(msg, wp, lp);
     }
     /**
      * 窗口创建完成的事件
@@ -125,8 +124,7 @@ int main() {
                               .SetHeight(400)
                               .SetScale(false)  // 固定窗口大小为用户设置的值, 不缩放
                               .SetX(100)
-                              .SetY(100)
-                              .SetStylePopup()};
+                              .SetY(100)};
     event_win.Show();
     /**
      * 焦点在主窗口

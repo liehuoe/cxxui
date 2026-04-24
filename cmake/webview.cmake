@@ -11,7 +11,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         endif()
         set(FC_NAME microsoft_web_webview2)
         FetchContent_Declare(${FC_NAME}
-            URL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/1.0.2420.47")
+            URL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/1.0.3405.78")
         FetchContent_MakeAvailable(${FC_NAME})
         set(MSWebView2_ROOT "${${FC_NAME}_SOURCE_DIR}")
         set(MSWebView2_ROOT "${MSWebView2_ROOT}")

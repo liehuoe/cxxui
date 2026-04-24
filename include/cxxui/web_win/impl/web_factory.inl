@@ -36,17 +36,39 @@ public:
     /** 创建webview */
     HRESULT CreateWebView(HWND hwnd, WebCallback callback) {
         if (env_) {
-            return env_->CreateCoreWebView2Controller(
-                hwnd,
-                Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-                    [hwnd, callback = std::move(callback)](
-                        HRESULT result, ICoreWebView2Controller* ctrl) -> HRESULT {
-                        if (IsWindow(hwnd)) {
-                            callback(result, ctrl);
-                        }
-                        return S_OK;
-                    })
-                    .Get());
+            ComPtr<ICoreWebView2Environment15> env15;
+            ComPtr<ICoreWebView2ControllerOptions> opts;
+            ComPtr<ICoreWebView2ControllerOptions3> opts3;
+            if (SUCCEEDED(env_.As<ICoreWebView2Environment15>(&env15)) &&
+                SUCCEEDED(env15->CreateCoreWebView2ControllerOptions(&opts)) &&
+                SUCCEEDED(opts.As<ICoreWebView2ControllerOptions3>(&opts3))) {
+                // 设置默认透明背景，解决可能的背景闪烁问题
+                opts3->put_DefaultBackgroundColor({0, 0, 0, 0});
+                return env15->CreateCoreWebView2ControllerWithOptions(
+                    hwnd,
+                    opts.Get(),
+                    Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+                        [hwnd, callback = std::move(callback)](
+                            HRESULT result, ICoreWebView2Controller* ctrl) -> HRESULT {
+                            if (IsWindow(hwnd)) {
+                                callback(result, ctrl);
+                            }
+                            return S_OK;
+                        })
+                        .Get());
+            } else {
+                return env_->CreateCoreWebView2Controller(
+                    hwnd,
+                    Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+                        [hwnd, callback = std::move(callback)](
+                            HRESULT result, ICoreWebView2Controller* ctrl) -> HRESULT {
+                            if (IsWindow(hwnd)) {
+                                callback(result, ctrl);
+                            }
+                            return S_OK;
+                        })
+                        .Get());
+            }
         }
         // 设置 webview2 缓存路径
         wchar_t exe_path[MAX_PATH];
