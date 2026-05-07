@@ -224,6 +224,9 @@ protected:
                 break;
             }
             case WM_DESTROY: {
+                // 如果在 OnClosed 中触发析构, 会导致 DestroyWindow 再触发一次 WM_DESTROY
+                // 设置 GWLP_USERDATA 为空解决问题
+                SetWindowLongPtr(hwnd_, GWLP_USERDATA, 0);
                 static_cast<Derived*>(this)->OnClosed();
                 break;
             }
