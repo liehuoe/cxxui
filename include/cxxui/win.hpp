@@ -2,7 +2,6 @@
 #include <string_view>
 
 #include <cxxui/core/color.hpp>
-#include "win/error.hpp"
 #include "win/options.hpp"
 #include "win/event.hpp"
 #include "win/impl/win.inl"
@@ -63,6 +62,12 @@ public:
      * @param icon_id 图标资源ID
      */
     void SetIcon(std::uint32_t icon_id) { Base::SetIcon(icon_id); }
+    /**
+     * @brief 获取平台原生的窗口句柄
+     *
+     * @return Handle
+     */
+    Handle GetHandle() const noexcept { return Base::GetHandle(); }
 
 protected:
     CXXUI_WIN_EVENT(Derived)

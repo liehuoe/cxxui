@@ -11,6 +11,7 @@
     #pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 #endif
 
+#include <cxxui/win/error.hpp>
 #include <cxxui/core/detail/string_coder.hpp>
 #include "detail/user32.hpp"
 
@@ -201,6 +202,7 @@ protected:
         // 设置小图标（任务栏、Alt+Tab）
         SendMessageW(hwnd_, WM_SETICON, ICON_SMALL, lp);
     }
+    Handle GetHandle() const noexcept { return hwnd_; }
 
 protected:
     /**

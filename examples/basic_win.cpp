@@ -127,6 +127,10 @@ int main() {
                               .SetY(100)};
     event_win.Show();
     /**
+     * 获取平台原生的窗口句柄
+     */
+    SetWindowTextW(event_win.GetHandle(), L"处理事件的窗口(修改)");
+    /**
      * 焦点在主窗口
      */
     main_win.Focus();

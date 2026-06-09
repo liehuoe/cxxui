@@ -4,6 +4,11 @@
 namespace cxxui {
 
 /**
+ * @brief 平台原生的窗口句柄定义
+ */
+using Handle = detail::Handle;
+
+/**
  * @brief 创建窗口的选项
  *
  */
@@ -86,11 +91,20 @@ public:
     }
     /**
      * @brief 设置窗口样式为弹出式
-     *
      * @return WindowOptions&
      */
     WindowOptions& SetStylePopup() {
         WindowOptionsBase::SetStylePopup();
+        return *this;
+    }
+    /**
+     * @brief 设置父窗口
+     *
+     * @param parent 父窗口句柄
+     * @return WindowOptions&
+     */
+    WindowOptions& SetParent(Handle parent) {
+        WindowOptionsBase::SetParent(parent);
         return *this;
     }
 };

@@ -5,6 +5,8 @@
 
 namespace cxxui::detail {
 
+using Handle = HWND;
+
 class WindowOptionsBase {
     template <typename Derived>
     friend class WindowBase;
@@ -22,6 +24,7 @@ protected:
     int GetY() const { return y_; }
     void SetScale(bool scale) { scale_ = scale; }
     bool GetScale() const { return scale_; }
+    void SetParent(Handle parent) { parent_ = parent; }
 
     void SetStyleDefault() {
         style_ = WS_OVERLAPPEDWINDOW;
