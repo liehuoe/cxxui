@@ -19,7 +19,14 @@ public:
         if (!IsValid()) {
             return nullptr;
         }
+#ifndef _MSC_VER
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
         return reinterpret_cast<T>(GetProcAddress(handle_, func_name.data()));
+#ifndef _MSC_VER
+    #pragma GCC diagnostic pop
+#endif
     }
 
 private:

@@ -1,5 +1,4 @@
 #pragma once
-#include "web_win/req_ctx.hpp"
 #include "web_win/impl/web_win.inl"
 
 /** WebWindow的事件友元类定义, 声明该类为友元类可以把事件回调函数放到private作用域中 */

@@ -1,7 +1,6 @@
-#include <memory>
-#include <array>
 #include <cxxui/win.hpp>
 #include <cxxui/core/detail/wm_msg.h>
+#include <cxxui/web_win/req_ctx.hpp>
 #include "./web_factory.inl"
 
 namespace cxxui::detail {
@@ -146,16 +145,6 @@ protected:
         if (FAILED(hr)) {
             throw WindowError(hr, "add_WebResourceRequested failed!");
         }
-    }
-    void OnNavigateCompleted(std::function<void(std::string)> handler) {
-        HRESULT hr = GetWebView()->add_NavigationCompleted(
-            Callback<ICoreWebView2NavigationCompletedEventHandler>(
-                [handler = std::move(handler)](
-                    ICoreWebView2* sender,
-                    ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
-                    BOOL success;
-                    HRESULT hr = args->get_IsSuccess(&success);
-                }))
     }
 
 protected:

@@ -1,9 +1,5 @@
 #pragma once
 #include <string_view>
-
-#include <cxxui/core/color.hpp>
-#include "win/options.hpp"
-#include "win/event.hpp"
 #include "win/impl/win.inl"
 
 /** Window的事件友元类定义, 声明该类为友元类可以把事件回调函数放到private作用域中 */

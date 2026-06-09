@@ -1,6 +1,6 @@
 #include <optional>
 
-#include <winreg.h>
+#include <windows.h>
 #include <dwmapi.h>
 #ifdef _MSC_VER
     #pragma comment(lib, "user32.lib")  // CreateWindow
@@ -12,6 +12,9 @@
 #endif
 
 #include <cxxui/win/error.hpp>
+#include <cxxui/core/color.hpp>
+#include <cxxui/win/event.hpp>
+#include <cxxui/win/options.hpp>
 #include <cxxui/core/detail/string_coder.hpp>
 #include "detail/user32.hpp"
 
