@@ -1,9 +1,6 @@
 #pragma once
 
 #include <shellscalingapi.h>
-#ifdef _MSC_VER
-    #pragma comment(lib, "shcore.lib")  // GetDpiForMonitor
-#endif
 
 #include <cxxui/core/detail/library.hpp>
 

@@ -1,14 +1,15 @@
 #include <functional>
-#include <filesystem>
-#include <wrl.h>
-#include <WebView2.h>
-#include <cxxui/core/detail/string_coder.hpp>
+#include "detail/mswebview2.hpp"
 
 /** 定义 webview2 runtime 的目录，以制作便携版。
  * 如果目录不存在，则退化为查找系统安装的 webview2 runtime
  */
 #ifndef CXXUI_WEBVIEW2_DIR
     #define CXXUI_WEBVIEW2_DIR "./webview2"
+#endif
+/** 定义 webview2 用户数据目录 */
+#ifndef CXXUI_WEBVIEW2_USER_DIR
+    #define CXXUI_WEBVIEW2_USER_DIR "./.cache"
 #endif
 
 namespace cxxui::detail {
@@ -39,68 +40,62 @@ public:
             ComPtr<ICoreWebView2Environment15> env15;
             ComPtr<ICoreWebView2ControllerOptions> opts;
             ComPtr<ICoreWebView2ControllerOptions3> opts3;
-            if (SUCCEEDED(env_.As<ICoreWebView2Environment15>(&env15)) &&
+            if (SUCCEEDED(MSWebView2As(env_, env15)) &&
                 SUCCEEDED(env15->CreateCoreWebView2ControllerOptions(&opts)) &&
-                SUCCEEDED(opts.As<ICoreWebView2ControllerOptions3>(&opts3))) {
+                SUCCEEDED(MSWebView2As(opts, opts3))) {
                 // 设置默认透明背景，解决可能的背景闪烁问题
                 opts3->put_DefaultBackgroundColor({0, 0, 0, 0});
                 return env15->CreateCoreWebView2ControllerWithOptions(
                     hwnd,
                     opts.Get(),
-                    Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-                        [hwnd, callback = std::move(callback)](
-                            HRESULT result, ICoreWebView2Controller* ctrl) -> HRESULT {
-                            if (IsWindow(hwnd)) {
-                                callback(result, ctrl);
+                    MSWebView2Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+                        [callback = std::move(callback)](HRESULT result,
+                                                         ICoreWebView2Controller* ctrl) -> HRESULT {
+                            if (SUCCEEDED(result)) {
+                                HWND parent = nullptr;
+                                ctrl->get_ParentWindow(&parent);
+                                if (!IsWindow(parent)) {
+                                    return S_OK;
+                                }
                             }
+                            callback(result, ctrl);
                             return S_OK;
                         })
                         .Get());
             } else {
                 return env_->CreateCoreWebView2Controller(
                     hwnd,
-                    Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-                        [hwnd, callback = std::move(callback)](
-                            HRESULT result, ICoreWebView2Controller* ctrl) -> HRESULT {
-                            if (IsWindow(hwnd)) {
-                                callback(result, ctrl);
+                    MSWebView2Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+                        [callback = std::move(callback)](HRESULT result,
+                                                         ICoreWebView2Controller* ctrl) -> HRESULT {
+                            if (SUCCEEDED(result)) {
+                                HWND parent = nullptr;
+                                ctrl->get_ParentWindow(&parent);
+                                if (!IsWindow(parent)) {
+                                    return S_OK;
+                                }
                             }
+                            callback(result, ctrl);
                             return S_OK;
                         })
                         .Get());
             }
         }
-        // 设置 webview2 缓存路径
-        wchar_t exe_path[MAX_PATH];
-        GetModuleFileNameW(nullptr, exe_path, MAX_PATH);
-        auto udf = std::filesystem::path(exe_path).parent_path() / L".cache";
         // 异步创建 env，创建期间缓存创建任务到queue
         // env 创建完成后在 OnEnvCreated 处理 queue
         queue_ = std::make_unique<std::vector<QueueData>>();
         queue_->emplace_back(QueueData{hwnd, callback});
-        std::filesystem::path webview2_dir = GetWebView2Dir();
-        HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
-            std::filesystem::exists(webview2_dir) ? webview2_dir.c_str() : nullptr,
-            udf.c_str(),
-            nullptr,
-            Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(OnEnvCreated)
+        HRESULT hr = MSWebView2{}.CreateEnvironment(
+            CXXUI_WEBVIEW2_DIR,
+            CXXUI_WEBVIEW2_USER_DIR,
+            MSWebView2Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+                &OnEnvCreated)
                 .Get());
         if (FAILED(hr)) {
             queue_.reset();
             return hr;
         }
         return S_OK;
-    }
-    std::filesystem::path GetWebView2Dir() {
-        std::filesystem::path dir;
-        if constexpr (CXXUI_WEBVIEW2_DIR[0] == '.') {
-            wchar_t exe_path[MAX_PATH]{};
-            GetModuleFileNameW(nullptr, exe_path, MAX_PATH - 1);
-            dir = std::filesystem::path(exe_path).parent_path() / detail::U82W(CXXUI_WEBVIEW2_DIR);
-        } else {
-            dir = detail::U82W(CXXUI_WEBVIEW2_DIR);
-        }
-        return dir;
     }
 
 private:

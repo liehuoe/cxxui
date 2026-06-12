@@ -2,13 +2,23 @@
 
 #include <string_view>
 #include <windows.h>
+#include "string_coder.hpp"
 
 namespace cxxui::detail {
 
 class Library {
 public:
-    Library(std::string_view dll_name) { handle_ = LoadLibraryA(dll_name.data()); }
-    ~Library() {
+    Library() = default;
+    Library(std::string_view dll_name) { Load(dll_name); }
+    Library(std::wstring_view dll_name) { Load(dll_name); }
+    ~Library() { Unload(); }
+    bool Load(std::string_view dll_name) { return Load(U82W(dll_name)); }
+    bool Load(std::wstring_view dll_name) {
+        Unload();
+        handle_ = LoadLibraryW(dll_name.data());
+        return handle_ != nullptr;
+    }
+    void Unload() {
         if (handle_) {
             FreeLibrary(handle_);
         }
@@ -30,7 +40,7 @@ public:
     }
 
 private:
-    HMODULE handle_;
+    HMODULE handle_ = nullptr;
 };
 
 }  // namespace cxxui::detail

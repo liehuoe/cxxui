@@ -46,7 +46,7 @@ protected:
     }
     void SetBackground(const Color& color) {
         ComPtr<ICoreWebView2Controller2> ctrl2;
-        HRESULT hr = ctrl_.As(&ctrl2);
+        HRESULT hr = MSWebView2As(ctrl_, ctrl2);
         if (FAILED(hr)) {
             throw WindowError(hr, "As ICoreWebView2Controller2 failed!");
         }
@@ -57,14 +57,14 @@ protected:
     }
     void OnJsMsg(std::function<std::string(std::string)> handler) {
         HRESULT hr = GetWebView()->add_WebMessageReceived(
-            Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+            MSWebView2Callback<ICoreWebView2WebMessageReceivedEventHandler>(
                 [handler = std::move(handler)](
                     ICoreWebView2* sender,
                     ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
                     LPWSTR msg;
-                    HRESULT hr = args->get_WebMessageAsJson(&msg);
-                    if (FAILED(hr)) {
-                        return hr;
+                    HRESULT hr_msg = args->get_WebMessageAsJson(&msg);
+                    if (FAILED(hr_msg)) {
+                        return hr_msg;
                     }
                     std::string req = W2U8(msg);
                     CoTaskMemFree(msg);
@@ -96,29 +96,29 @@ protected:
      * 只能自己找到相应的子窗口进行操作
      */
     void Focus() const {
-        HWND hwnd = 0;
+        HWND found_hwnd = 0;
         EnumChildWindows(
             this->hwnd_,
-            [](HWND hwnd, LPARAM lp) -> BOOL {
+            [](HWND child_hwnd, LPARAM lp) -> BOOL {
                 wchar_t name[256] = {0};
-                GetClassNameW(hwnd, name, ARRAYSIZE(name));
+                GetClassNameW(child_hwnd, name, ARRAYSIZE(name));
                 if (wcscmp(name, L"Chrome_WidgetWin_0") == 0) {
-                    *reinterpret_cast<HWND*>(lp) = hwnd;
+                    *reinterpret_cast<HWND*>(lp) = child_hwnd;
                     return FALSE;
                 }
                 return TRUE;
             },
-            reinterpret_cast<LPARAM>(&hwnd));
-        if (!hwnd) {
+            reinterpret_cast<LPARAM>(&found_hwnd));
+        if (!found_hwnd) {
             throw WindowError(E_FAIL, "Get webview hwnd failed!");
         }
-        SetFocus(hwnd);
+        SetFocus(found_hwnd);
     }
     void OnWebRequest(std::function<void(WebRequest& ctx)> handler, std::string_view filter) {
         ComPtr<ICoreWebView2> webview = GetWebView();
 
         ComPtr<ICoreWebView2_22> webview22;
-        HRESULT hr = webview.As<ICoreWebView2_22>(&webview22);
+        HRESULT hr = MSWebView2As(webview, webview22);
         if (SUCCEEDED(hr)) {
             hr = webview22->AddWebResourceRequestedFilterWithRequestSourceKinds(
                 detail::U82W(filter).c_str(),
@@ -133,8 +133,8 @@ protected:
             throw WindowError(hr, "AddWebResourceRequestedFilter failed!");
         }
         hr = webview->add_WebResourceRequested(
-            Callback<ICoreWebView2WebResourceRequestedEventHandler>(
-                [this, handler = std::move(handler)](
+            MSWebView2Callback<ICoreWebView2WebResourceRequestedEventHandler>(
+                [handler = std::move(handler)](
                     ICoreWebView2*, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
                     WebRequest ctx{args, WebFactory::GetInstance().GetEnv().Get()};
                     handler(ctx);
@@ -198,7 +198,7 @@ window.SetCppMsgHandler = function (handler) {
             return;
         }
         ComPtr<ICoreWebView2Settings9> settings9;
-        if (FAILED(settings.As<ICoreWebView2Settings9>(&settings9))) {
+        if (FAILED(MSWebView2As(settings, settings9))) {
             return;
         }
         // 让 js 可以自行控制拖拽区域
