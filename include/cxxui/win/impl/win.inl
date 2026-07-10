@@ -1,4 +1,6 @@
+#include <typeindex>
 #include <optional>
+#include <array>
 
 #include <windows.h>
 #include <dwmapi.h>
@@ -48,34 +50,15 @@ bool IsDarkMode() noexcept {
     return result;
 }
 
-class WndProcBase {
-    friend class WinFactory;
-
-public:
-    virtual ~WndProcBase() = default;
-
-protected:
-    HWND hwnd_ = 0;
-    virtual std::optional<LRESULT> OnWndProc(UINT msg, WPARAM wp, LPARAM lp) = 0;
-};
-
 class WinFactory {
 public:
-    using WndProcFn = LRESULT(CALLBACK*)(HWND, UINT, WPARAM, LPARAM);
-    /**
-     * @brief 窗口初始化函数, 整个进程运行过程只初始化一次
-     *
-     * @return bool 初始化成功返回true, 失败返回false
-     */
-    static bool Init(WndProcFn wnd_proc = WndProc) {
-        if (main_hwnd_ != 0) {
-            return true;
-        } else {
-            main_hwnd_ = reinterpret_cast<HWND>(-1);
-        }
-        // 设置DPI感知
-        User32{}.SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-        // 注册窗口类
+    /** 获取单例实例 */
+    static WinFactory& GetInstance() {
+        static WinFactory instance;
+        return instance;
+    }
+    /** 注册窗口类 */
+    void RegClass(LPCWSTR class_name, WNDPROC wnd_proc) {
         WNDCLASSEXW wc{};
         wc.cbSize = sizeof(WNDCLASSEXW);
         wc.style = CS_HREDRAW | CS_VREDRAW;                             // 窗口水平、垂直重绘
@@ -83,58 +66,27 @@ public:
         wc.hInstance = GetModuleHandle(nullptr);                        // 应用程序实例句柄
         wc.hCursor = LoadCursor(nullptr, IDC_ARROW);                    // 使用系统默认的箭头光标
         wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);  // 默认背景颜色
-        wc.lpszClassName = CXXUI_WIN32_CLASS_NAME;                      // 窗口类名
-        return RegisterClassExW(&wc);
+        wc.lpszClassName = class_name;                                  // 窗口类名
+        RegisterClassExW(&wc);
     }
     /** 设置主函数窗口句柄 */
-    static void SetMainWindow(HWND hwnd) { main_hwnd_ = hwnd; }
-    /** 消息处理函数 */
-    static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
-        WndProcBase* win;
-        if (msg == WM_NCCREATE) {
-            LPCREATESTRUCT pcs = reinterpret_cast<LPCREATESTRUCT>(lp);
-            win = reinterpret_cast<WndProcBase*>(pcs->lpCreateParams);
-            win->hwnd_ = hwnd;
-            SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(win));
-        } else {
-            win = reinterpret_cast<WndProcBase*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-            if (!win) {
-                return DefWindowProcW(hwnd, msg, wp, lp);
-            }
-        }
-        std::optional<LRESULT> result = win->OnWndProc(msg, wp, lp);
-        switch (msg) {
-            case WM_DESTROY: {
-                // 如果是主窗口, 则退出进程
-                if (win->hwnd_ == main_hwnd_) {
-                    PostQuitMessage(0);
-                }
-                win->hwnd_ = 0;
-                break;
-            }
-            case WM_DPICHANGED: {
-                RECT* rc = reinterpret_cast<RECT*>(lp);
-                SetWindowPos(hwnd,
-                             nullptr,
-                             rc->left,
-                             rc->top,
-                             rc->right - rc->left,
-                             rc->bottom - rc->top,
-                             SWP_NOZORDER | SWP_NOACTIVATE);
-                break;
-            }
-        }
-        return result ? result.value() : DefWindowProcW(hwnd, msg, wp, lp);
+    void SetMainWindow(HWND hwnd) { main_hwnd_ = hwnd; }
+    HWND GetMainWindow() const { return main_hwnd_; }
+
+private:
+    WinFactory() {
+        // 设置DPI感知
+        User32{}.SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     }
 
 private:
-    inline static HWND main_hwnd_ = 0;
+    HWND main_hwnd_ = nullptr;
 };
 
 template <typename Derived>
-class WindowBase : public WndProcBase {
+class WindowBase {
 public:
-    virtual ~WindowBase() {
+    ~WindowBase() {
         if (hwnd_) {
             DestroyWindow(hwnd_);
         }
@@ -142,14 +94,14 @@ public:
 
 protected:
     int Run() noexcept {
-        detail::WinFactory::SetMainWindow(hwnd_);  // 设置主窗口
+        detail::WinFactory::GetInstance().SetMainWindow(hwnd_);  // 设置主窗口
         // 消息循环
         MSG msg;
         while (GetMessageW(&msg, NULL, 0, 0) > 0) {
             TranslateMessage(&msg);
             DispatchMessageW(&msg);
         }
-        detail::WinFactory::SetMainWindow(nullptr);  // 置空，防止重复发送WM_QUIT
+        detail::WinFactory::GetInstance().SetMainWindow(nullptr);  // 置空，防止重复发送WM_QUIT
         return static_cast<int>(msg.wParam);
     }
     void Exit(int exit_code) noexcept { PostQuitMessage(exit_code); }
@@ -157,10 +109,11 @@ protected:
         if (hwnd_) {
             throw WindowError(ERROR_ALREADY_EXISTS, "Window already exists!");
         }
-        detail::WinFactory::Init();
+        auto class_name = ClassName();
+        detail::WinFactory::GetInstance().RegClass(class_name.data(), OnWndProc);
         opts.ScaleRect();
         CreateWindowExW(opts.ex_style_,
-                        CXXUI_WIN32_CLASS_NAME,             // 窗口类名
+                        class_name.data(),                  // 窗口类名
                         detail::U82W(opts.title_).c_str(),  // 窗口标题
                         opts.style_,                        // 窗口样式
                         opts.x_,                            // 窗口 x 坐标
@@ -209,20 +162,52 @@ protected:
 
 protected:
     /**
+     * @brief WIN32的窗口句柄
+     */
+    HWND hwnd_ = 0;
+    /**
      * @brief 子类接收win32消息的事件
      */
     std::optional<LRESULT> OnWin32Msg(UINT, WPARAM, LPARAM) { return std::nullopt; }
 
-protected:
-    std::optional<LRESULT> OnWndProc(UINT msg, WPARAM wp, LPARAM lp) override final {
+private:
+    static constexpr auto ClassName() noexcept {
+        constexpr auto prefix_size = std::char_traits<wchar_t>::length(CXXUI_WIN32_CLASS_NAME);
+        std::array<wchar_t, prefix_size + 16 + 1> hex{};
+        hex[hex.size() - 1] = L'\0';
+        auto hash = std::type_index(typeid(WindowBase<Derived>)).hash_code();
+        for (int i = static_cast<int>(hex.size() - 2); i >= 0; --i) {
+            int nibble = static_cast<int>(hash & 0xF);
+            hex[i] = static_cast<wchar_t>(nibble < 10 ? L'0' + nibble : L'A' + nibble - 10);
+            hash >>= 4;
+        }
+        for (std::size_t i = 0; i < prefix_size; ++i) {
+            hex[i] = CXXUI_WIN32_CLASS_NAME[i];
+        }
+        return hex;
+    }
+    static LRESULT CALLBACK OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+        WindowBase<Derived>* self;
+        if (msg == WM_NCCREATE) {
+            LPCREATESTRUCT pcs = reinterpret_cast<LPCREATESTRUCT>(lp);
+            self = reinterpret_cast<WindowBase<Derived>*>(pcs->lpCreateParams);
+            self->hwnd_ = hwnd;
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(self));
+        } else {
+            self = reinterpret_cast<WindowBase<Derived>*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+            if (!self) {
+                return DefWindowProcW(hwnd, msg, wp, lp);
+            }
+        }
+
         switch (msg) {
             case WM_CREATE: {
-                static_cast<Derived*>(this)->OnCreated();
+                static_cast<Derived*>(self)->OnCreated();
                 break;
             }
             case WM_CLOSE: {
                 ClosingEvent event;
-                static_cast<Derived*>(this)->OnClosing(event);
+                static_cast<Derived*>(self)->OnClosing(event);
                 if (!event.close_) {
                     return 0;
                 }
@@ -231,20 +216,36 @@ protected:
             case WM_DESTROY: {
                 // 如果在 OnClosed 中触发析构, 会导致 DestroyWindow 再触发一次 WM_DESTROY
                 // 设置 GWLP_USERDATA 为空解决问题
-                SetWindowLongPtr(hwnd_, GWLP_USERDATA, 0);
-                static_cast<Derived*>(this)->OnClosed();
+                SetWindowLongPtr(self->hwnd_, GWLP_USERDATA, 0);
+                static_cast<Derived*>(self)->OnClosed();
+                // 如果是主窗口, 则退出进程
+                if (self->hwnd_ == WinFactory::GetInstance().GetMainWindow()) {
+                    WinFactory::GetInstance().SetMainWindow(nullptr);
+                    PostQuitMessage(0);
+                }
                 break;
             }
             case WM_SIZE: {
                 SizeEvent event;
                 event.lp_ = lp;
-                static_cast<Derived*>(this)->OnSize(event);
+                static_cast<Derived*>(self)->OnSize(event);
+                break;
+            }
+            case WM_DPICHANGED: {
+                RECT* rc = reinterpret_cast<RECT*>(lp);
+                SetWindowPos(hwnd,
+                             nullptr,
+                             rc->left,
+                             rc->top,
+                             rc->right - rc->left,
+                             rc->bottom - rc->top,
+                             SWP_NOZORDER | SWP_NOACTIVATE);
                 break;
             }
             case WM_ACTIVATE: {
                 ActivateEvent event;
                 event.wp_ = wp;
-                static_cast<Derived*>(this)->OnActivate(event);
+                static_cast<Derived*>(self)->OnActivate(event);
                 break;
             }
             case WM_SETTINGCHANGE: {
@@ -253,13 +254,14 @@ protected:
                 }
                 SettingEvent event;
                 event.name_ = reinterpret_cast<LPWSTR>(lp);
-                static_cast<Derived*>(this)->OnSetting(event);
+                static_cast<Derived*>(self)->OnSetting(event);
                 break;
             }
             default:
                 break;
         }
-        return static_cast<Derived*>(this)->OnWin32Msg(msg, wp, lp);
+        auto res = static_cast<Derived*>(self)->OnWin32Msg(msg, wp, lp);
+        return res ? res.value() : DefWindowProcW(hwnd, msg, wp, lp);
     }
 };
 
