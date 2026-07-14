@@ -91,6 +91,26 @@ public:
             DestroyWindow(hwnd_);
         }
     }
+    /**
+     * @brief WIN32平台获取该窗口的窗口类名称
+     *
+     * @return std::array<wchar_t, N>
+     */
+    static constexpr auto GetWin32ClassName() noexcept {
+        constexpr auto prefix_size = std::char_traits<wchar_t>::length(CXXUI_WIN32_CLASS_NAME);
+        std::array<wchar_t, prefix_size + 16 + 1> hex{};
+        hex[hex.size() - 1] = L'\0';
+        auto hash = std::type_index(typeid(WindowBase<Derived>)).hash_code();
+        for (int i = static_cast<int>(hex.size() - 2); i >= 0; --i) {
+            int nibble = static_cast<int>(hash & 0xF);
+            hex[i] = static_cast<wchar_t>(nibble < 10 ? L'0' + nibble : L'A' + nibble - 10);
+            hash >>= 4;
+        }
+        for (std::size_t i = 0; i < prefix_size; ++i) {
+            hex[i] = CXXUI_WIN32_CLASS_NAME[i];
+        }
+        return hex;
+    }
 
 protected:
     int Run() noexcept {
@@ -109,7 +129,7 @@ protected:
         if (hwnd_) {
             throw WindowError(ERROR_ALREADY_EXISTS, "Window already exists!");
         }
-        auto class_name = ClassName();
+        auto class_name = GetWin32ClassName();
         detail::WinFactory::GetInstance().RegClass(class_name.data(), OnWndProc);
         opts.ScaleRect();
         CreateWindowExW(opts.ex_style_,
@@ -171,21 +191,6 @@ protected:
     std::optional<LRESULT> OnWin32Msg(UINT, WPARAM, LPARAM) { return std::nullopt; }
 
 private:
-    static constexpr auto ClassName() noexcept {
-        constexpr auto prefix_size = std::char_traits<wchar_t>::length(CXXUI_WIN32_CLASS_NAME);
-        std::array<wchar_t, prefix_size + 16 + 1> hex{};
-        hex[hex.size() - 1] = L'\0';
-        auto hash = std::type_index(typeid(WindowBase<Derived>)).hash_code();
-        for (int i = static_cast<int>(hex.size() - 2); i >= 0; --i) {
-            int nibble = static_cast<int>(hash & 0xF);
-            hex[i] = static_cast<wchar_t>(nibble < 10 ? L'0' + nibble : L'A' + nibble - 10);
-            hash >>= 4;
-        }
-        for (std::size_t i = 0; i < prefix_size; ++i) {
-            hex[i] = CXXUI_WIN32_CLASS_NAME[i];
-        }
-        return hex;
-    }
     static LRESULT CALLBACK OnWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         WindowBase<Derived>* self;
         if (msg == WM_NCCREATE) {
