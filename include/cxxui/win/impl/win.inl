@@ -125,7 +125,8 @@ protected:
         return static_cast<int>(msg.wParam);
     }
     void Exit(int exit_code) noexcept { PostQuitMessage(exit_code); }
-    void Create(WindowOptionsBase& opts) {
+    template <typename T>
+    void Create(WindowOptionsBase<T>& opts) {
         if (hwnd_) {
             throw WindowError(ERROR_ALREADY_EXISTS, "Window already exists!");
         }

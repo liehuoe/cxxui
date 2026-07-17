@@ -7,9 +7,20 @@ namespace cxxui::detail {
 
 using Handle = HWND;
 
+template <typename Derived>
 class WindowOptionsBase {
-    template <typename Derived>
+    template <typename T>
     friend class WindowBase;
+
+public:
+    Derived& SetWin32Style(DWORD style) {
+        style_ = style;
+        return static_cast<Derived&>(*this);
+    }
+    Derived& SetWin32ExStyle(DWORD ex_style) {
+        ex_style_ = ex_style;
+        return static_cast<Derived&>(*this);
+    }
 
 protected:
     void SetTitle(std::string_view title) { title_ = title; }
@@ -25,15 +36,6 @@ protected:
     void SetScale(bool scale) { scale_ = scale; }
     bool GetScale() const { return scale_; }
     void SetParent(Handle parent) { parent_ = parent; }
-
-    void SetStyleDefault() {
-        style_ = WS_OVERLAPPEDWINDOW;
-        ex_style_ = 0;
-    }
-    void SetStylePopup() {
-        style_ = WS_POPUPWINDOW;
-        ex_style_ = WS_EX_TOOLWINDOW | WS_EX_LAYERED;
-    }
 
 protected:
     /** 窗口标题 */

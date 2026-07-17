@@ -12,7 +12,7 @@ using Handle = detail::Handle;
  * @brief 创建窗口的选项
  *
  */
-class WindowOptions : public detail::WindowOptionsBase {
+class WindowOptions : public detail::WindowOptionsBase<WindowOptions> {
 public:
     /**
      * @brief 设置窗口标题
@@ -80,23 +80,6 @@ public:
         return *this;
     }
     bool GetScale() const { return WindowOptionsBase::GetScale(); }
-    /**
-     * @brief 设置窗口样式为默认
-     *
-     * @return WindowOptions&
-     */
-    WindowOptions& SetStyleDefault() {
-        WindowOptionsBase::SetStyleDefault();
-        return *this;
-    }
-    /**
-     * @brief 设置窗口样式为弹出式
-     * @return WindowOptions&
-     */
-    WindowOptions& SetStylePopup() {
-        WindowOptionsBase::SetStylePopup();
-        return *this;
-    }
     /**
      * @brief 设置父窗口
      *
