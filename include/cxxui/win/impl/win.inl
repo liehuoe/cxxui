@@ -88,7 +88,9 @@ class WindowBase {
 public:
     ~WindowBase() {
         if (hwnd_) {
-            DestroyWindow(hwnd_);
+            HWND hwnd = hwnd_;
+            hwnd_ = nullptr;
+            DestroyWindow(hwnd);
         }
     }
     /**
@@ -161,7 +163,7 @@ protected:
             ShowWindow(hwnd_, SW_HIDE);
         }
     }
-    void Close() const noexcept { DestroyWindow(hwnd_); }
+    void Close() const noexcept { SendMessage(hwnd_, WM_CLOSE, 0, 0); }
     void Focus() const { SetFocus(hwnd_); }
     void SetTitle(std::string_view title) { SetWindowTextW(hwnd_, detail::U82W(title).c_str()); }
     void SetTitleColor(const Color& color) {
@@ -222,10 +224,14 @@ private:
             case WM_DESTROY: {
                 // 如果在 OnClosed 中触发析构, 会导致 DestroyWindow 再触发一次 WM_DESTROY
                 // 设置 GWLP_USERDATA 为空解决问题
-                SetWindowLongPtr(self->hwnd_, GWLP_USERDATA, 0);
-                static_cast<Derived*>(self)->OnClosed();
+                SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
+                if (self->hwnd_) {
+                    // self->hwnd_ 如果为空，代表子类正在析构，则不触发 OnClosed
+                    static_cast<Derived*>(self)->OnClosed();
+                    self->hwnd_ = nullptr;
+                }
                 // 如果是主窗口, 则退出进程
-                if (self->hwnd_ == WinFactory::GetInstance().GetMainWindow()) {
+                if (hwnd == WinFactory::GetInstance().GetMainWindow()) {
                     WinFactory::GetInstance().SetMainWindow(nullptr);
                     PostQuitMessage(0);
                 }

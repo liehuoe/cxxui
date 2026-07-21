@@ -73,10 +73,12 @@ protected:
     void OnCreated() {}
     /**
      * @brief 用户关闭窗口时触发的事件
+     * 注意：如果窗口是因为类对象析构才销毁的话，则不会触发该事件
      */
     void OnClosing(ClosingEvent&) {}
     /**
      * @brief 窗口被关闭时触发的事件
+     * 注意：如果窗口是因为类对象析构才销毁的话，则不会触发该事件
      */
     void OnClosed() {}
     /**
