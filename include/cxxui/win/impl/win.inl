@@ -1,4 +1,3 @@
-#include <typeindex>
 #include <optional>
 #include <array>
 
@@ -83,6 +82,24 @@ private:
     HWND main_hwnd_ = nullptr;
 };
 
+template <typename T>
+constexpr uint64_t GetHash() noexcept {
+#if defined(__clang__) || defined(__GNUC__)
+    constexpr std::string_view sig = __PRETTY_FUNCTION__;
+#elif defined(_MSC_VER)
+    constexpr std::string_view sig = __FUNCSIG__;
+#else
+    #error "Unsupported compiler"
+#endif
+    uint64_t hash = 14695981039346656037ULL;
+    constexpr uint64_t prime = 1099511628211ULL;
+    for (unsigned char c : sig) {
+        hash ^= static_cast<uint64_t>(c);
+        hash *= prime;
+    }
+    return hash;
+}
+
 template <typename Derived>
 class WindowBase {
 public:
@@ -94,24 +111,24 @@ public:
         }
     }
     /**
-     * @brief WIN32平台获取该窗口的窗口类名称
+     * @brief WIN32平台获取该窗口的窗口类名称, 开发者可以覆盖该函数以自定义窗口类名称
      *
-     * @return std::array<wchar_t, N>
+     * @return std::wstring
      */
-    static constexpr auto GetWin32ClassName() noexcept {
-        constexpr auto prefix_size = std::char_traits<wchar_t>::length(CXXUI_WIN32_CLASS_NAME);
-        std::array<wchar_t, prefix_size + 16 + 1> hex{};
-        hex[hex.size() - 1] = L'\0';
-        auto hash = std::type_index(typeid(WindowBase<Derived>)).hash_code();
-        for (int i = static_cast<int>(hex.size() - 2); i >= 0; --i) {
-            int nibble = static_cast<int>(hash & 0xF);
-            hex[i] = static_cast<wchar_t>(nibble < 10 ? L'0' + nibble : L'A' + nibble - 10);
+    static std::wstring GetWin32ClassName() noexcept {
+        constexpr auto kHash = GetHash<Derived>();
+        constexpr auto kSize = sizeof(kHash) * 2;
+
+        std::array<wchar_t, kSize + 1> hex;
+        auto hash = kHash;
+        for (std::size_t i = 0; i < kSize; ++i) {
+            int h = static_cast<int>(hash & 0xF);
+            hex[kSize - i - 1] = static_cast<wchar_t>(h < 10 ? L'0' + h : L'A' + h - 10);
             hash >>= 4;
         }
-        for (std::size_t i = 0; i < prefix_size; ++i) {
-            hex[i] = CXXUI_WIN32_CLASS_NAME[i];
-        }
-        return hex;
+        hex[hex.size() - 1] = L'\0';
+
+        return std::wstring{CXXUI_WIN32_CLASS_NAME} + hex.data();
     }
 
 protected:
@@ -132,11 +149,11 @@ protected:
         if (hwnd_) {
             throw WindowError(ERROR_ALREADY_EXISTS, "Window already exists!");
         }
-        auto class_name = GetWin32ClassName();
+        auto class_name = Derived::GetWin32ClassName();
         detail::WinFactory::GetInstance().RegClass(class_name.data(), OnWndProc);
         opts.ScaleRect();
         CreateWindowExW(opts.ex_style_,
-                        class_name.data(),                  // 窗口类名
+                        class_name.data(),                 // 窗口类名
                         detail::U82W(opts.title_).c_str(),  // 窗口标题
                         opts.style_,                        // 窗口样式
                         opts.x_,                            // 窗口 x 坐标
