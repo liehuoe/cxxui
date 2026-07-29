@@ -1,7 +1,6 @@
 #include <cxxui/win.hpp>
-#include <cxxui/core/detail/wm_msg.h>
 #include <cxxui/web_win/req_ctx.hpp>
-#include "./web_factory.inl"
+#include "./web_ctrl.inl"
 
 namespace cxxui::detail {
 
@@ -12,25 +11,29 @@ class WebWindowBase : public Window<Derived> {
     friend class detail::WindowBase<Derived>;
 
 protected:
-    void WaitWebCreated() const {
-        if (this->ctrl_) {
-            return;
-        } else if (!this->hwnd_) {
-            throw WindowError(ERROR_INVALID_HANDLE, "Window is not created!");
+    std::optional<WindowError> WaitWebCreated() const noexcept {
+        if (!this->hwnd_) {
+            return WindowError(ERROR_INVALID_HANDLE, "Window is not created!");
         }
         MSG msg;
-        while (GetMessageW(&msg, nullptr, 0, 0) > 0) {
+        while (!this->ctrl_) {
+            if (!PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
+                continue;
+            }
+            if (msg.message == WM_QUIT) {
+                PostQuitMessage(static_cast<int>(msg.wParam));
+                return WindowError(ERROR_NOT_READY, "WM_QUIT received!");
+            }
             TranslateMessage(&msg);
             DispatchMessageW(&msg);
             if (msg.message != UM_WEB_CREATED || msg.hwnd != this->hwnd_) {
                 continue;
             }
             if (FAILED(msg.wParam)) {
-                throw WindowError(static_cast<long>(msg.wParam), "CreateWebView failed!");
+                return WindowError(static_cast<long>(msg.wParam), "CreateWebView failed!");
             }
-            return;
         }
-        throw WindowError(0, "GetMessage failed!");
+        return std::nullopt;
     }
     void SetHtml(std::string_view html) {
         HRESULT hr = GetWebView()->NavigateToString(U82W(html).c_str());
@@ -46,7 +49,7 @@ protected:
     }
     void SetBackground(const Color& color) {
         ComPtr<ICoreWebView2Controller2> ctrl2;
-        HRESULT hr = MSWebView2As(ctrl_, ctrl2);
+        HRESULT hr = MSWebView2As(ctrl_.GetCtrl(), ctrl2);
         if (FAILED(hr)) {
             throw WindowError(hr, "As ICoreWebView2Controller2 failed!");
         }
@@ -136,7 +139,7 @@ protected:
             MSWebView2Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                 [handler = std::move(handler)](
                     ICoreWebView2*, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
-                    WebRequest ctx{args, WebFactory::GetInstance().GetEnv().Get()};
+                    WebRequest ctx{args, WebCtrl::GetEnv()};
                     handler(ctx);
                     return S_OK;
                 })
@@ -148,7 +151,7 @@ protected:
     }
 
 protected:
-    ComPtr<ICoreWebView2Controller> ctrl_;
+    WebCtrl ctrl_;
     ComPtr<ICoreWebView2> GetWebView() const {
         ComPtr<ICoreWebView2> webview;
         HRESULT hr = ctrl_->get_CoreWebView2(&webview);
@@ -156,27 +159,6 @@ protected:
             throw WindowError(hr, "get_CoreWebView2 failed!");
         }
         return webview;
-    }
-    void Init() {
-        HRESULT hr = detail::WebFactory::GetInstance().CreateWebView(
-            this->hwnd_, [this](HRESULT result, ComPtr<ICoreWebView2Controller> ctrl) {
-                if (FAILED(result)) {
-                    PostMessageW(this->hwnd_, UM_WEB_CREATED, result, 0);
-                    return;
-                }
-                ctrl_ = ctrl;
-
-                RECT rc;
-                GetClientRect(this->hwnd_, &rc);
-                ctrl_->put_Bounds(rc);       // 适应父窗口大小
-                ctrl_->put_IsVisible(true);  // webview默认可见, 隐藏操作由父窗口控制
-                Focus();                     // 创建 webview 后默认获取焦点, 跟其他控件/窗口对齐
-                InitSetting();               // 其他的默认设置
-                PostMessageW(this->hwnd_, UM_WEB_CREATED, S_OK, 0);  // 发送创建完成的消息
-            });
-        if (FAILED(hr)) {
-            throw WindowError(hr, "CreateWebView failed!");
-        }
     }
     void InitSetting() {
         ComPtr<ICoreWebView2> webview;
@@ -216,13 +198,26 @@ window.SetCppMsgHandler = function (handler) {
     }
     std::optional<LRESULT> OnWin32Msg(UINT msg, WPARAM wp, LPARAM lp) {
         switch (msg) {
-            case UM_WEB_CREATED:
+            case WM_CREATE: {
+                ctrl_.Create(this->hwnd_);
+                break;
+            }
+            case UM_WEB_CREATED: {
                 if (FAILED(wp)) {
                     WindowError err{static_cast<long>(wp), "CreateWebView failed!"};
                     static_cast<Derived*>(this)->OnWebCreated(err);
-                } else {
-                    static_cast<Derived*>(this)->OnWebCreated(std::nullopt);
+                    break;
                 }
+                ctrl_.SetCtrl(reinterpret_cast<ICoreWebView2Controller*>(lp));
+                RECT rc;
+                GetClientRect(this->hwnd_, &rc);
+                ctrl_->put_Bounds(rc);       // 适应父窗口大小
+                ctrl_->put_IsVisible(true);  // webview默认可见, 隐藏操作由父窗口控制
+                Focus();                     // 创建 webview 后默认获取焦点, 跟其他控件/窗口对齐
+                InitSetting();               // 其他的默认设置
+                static_cast<Derived*>(this)->OnWebCreated(std::nullopt);
+                break;
+            }
         }
         return Window<Derived>::OnWin32Msg(msg, wp, lp);
     }

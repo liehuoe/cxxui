@@ -109,7 +109,7 @@ Microsoft::WRL::ComPtr<MSWebView2Handler<Interface, HandlerType>> MSWebView2Call
 }
 
 template <typename T, typename U>
-HRESULT MSWebView2As(Microsoft::WRL::ComPtr<T>& src, Microsoft::WRL::ComPtr<U>& dst) {
+HRESULT MSWebView2As(const Microsoft::WRL::ComPtr<T>& src, Microsoft::WRL::ComPtr<U>& dst) {
     IID riid = IID_IUnknown;
     if constexpr (std::is_same_v<U, ICoreWebView2Environment15>) {
         riid = IID_ICoreWebView2Environment15;

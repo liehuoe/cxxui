@@ -14,23 +14,19 @@ public:
     WebWindow() = default;
     WebWindow(WindowOptions opts) { Create(std::move(opts)); }
     /**
-     * @brief 创建窗口
-     *
-     * @param opts 创建窗口的选项
+     * @brief 等待webview创建完成
      */
-    void Create(WindowOptions opts) {
-        Base::Create(opts);
-        try {
-            this->Init();
-        } catch (...) {
-            Base::Close();
-            throw;
+    void WaitWebCreated() const {
+        if (auto err = Base::WaitWebCreated()) {
+            throw *err;
         }
     }
     /**
      * @brief 等待webview创建完成
      */
-    void WaitWebCreated() const { Base::WaitWebCreated(); }
+    void WaitWebCreated(std::optional<WindowError>& err) const noexcept {
+        err = Base::WaitWebCreated();
+    }
     /**
      * @brief 设置html内容
      *
