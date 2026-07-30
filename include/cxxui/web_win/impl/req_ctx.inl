@@ -21,8 +21,7 @@ class WebRequestBase {
     friend class WebWindowBase;
 
 protected:
-    WebRequestBase(ICoreWebView2WebResourceRequestedEventArgs* args,
-                       ICoreWebView2Environment* env)
+    WebRequestBase(ICoreWebView2WebResourceRequestedEventArgs* args, ICoreWebView2Environment* env)
         : args_(args),
           env_(env) {
         HRESULT hr = args->get_Request(&req_);
@@ -58,22 +57,25 @@ protected:
     }
     void SetResponse(int status_code) { SetResponse(status_code, nullptr); }
     void SetResponse(const void* data, std::size_t size, int status_code) {
-        SetResponse(status_code,
-                    SHCreateMemStream(static_cast<const BYTE*>(data), static_cast<UINT>(size)));
+        auto stream = SHCreateMemStream(static_cast<const BYTE*>(data), static_cast<UINT>(size));
+        if (!stream) {
+            SetResponse(404);
+            throw WindowError(E_FAIL, "SHCreateMemStream failed!");
+        } else {
+            SetResponse(status_code, stream);
+            stream->Release();
+        }
     }
     void SetResponse(std::string_view file_path) {
         IStream* stream = nullptr;
-        HRESULT hr = SHCreateStreamOnFileEx(U82W(file_path).data(),
-                                            STGM_READ | STGM_SHARE_DENY_WRITE,
-                                            FILE_ATTRIBUTE_NORMAL,
-                                            FALSE,
-                                            nullptr,
-                                            &stream);
+        HRESULT hr = SHCreateStreamOnFileEx(
+            U82W(file_path).data(), STGM_READ, FILE_ATTRIBUTE_NORMAL, FALSE, nullptr, &stream);
         if (FAILED(hr)) {
             SetResponse(404);
             throw WindowError(hr, "SHCreateStreamOnFileEx failed!");
         } else {
             SetResponse(200, stream);
+            stream->Release();
         }
     }
 
