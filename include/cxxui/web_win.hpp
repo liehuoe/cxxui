@@ -11,8 +11,6 @@ class WebWindow : public detail::WebWindowBase<Derived> {
     using Base = detail::WebWindowBase<Derived>;
 
 public:
-    WebWindow() = default;
-    WebWindow(WindowOptions opts) { Create(std::move(opts)); }
     /**
      * @brief 等待webview创建完成
      */

@@ -12,8 +12,6 @@ class Window : public detail::WindowBase<Derived> {
     using Base = detail::WindowBase<Derived>;
 
 public:
-    Window() = default;
-    Window(WindowOptions opts) { Create(std::move(opts)); }
     /**
      * @brief 开始运行消息循环，调用Run函数的窗口会定义为主窗口，主窗口退出则整个进程退出
      *

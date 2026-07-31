@@ -8,7 +8,7 @@ class DefaultWebWindow;
 
 template <typename Derived>
 class WebWindowBase : public Window<Derived> {
-    friend class detail::WindowBase<Derived>;
+    using Base = Window<Derived>;
 
 protected:
     std::optional<WindowError> WaitWebCreated() const noexcept {
@@ -190,6 +190,9 @@ window.SetCppMsgHandler = function (handler) {
         settings9->put_AreBrowserAcceleratorKeysEnabled(false);
 #endif
     }
+
+protected:
+    CXXUI_WIN_EVENT(Derived)
     void OnSize(SizeEvent& event) {
         if (ctrl_) {
             ctrl_->put_Bounds({0, 0, event.GetWidth(), event.GetHeight()});
