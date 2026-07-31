@@ -180,7 +180,7 @@ protected:
             ShowWindow(hwnd_, SW_HIDE);
         }
     }
-    void Close() const noexcept { SendMessage(hwnd_, WM_CLOSE, 0, 0); }
+    void Close() const noexcept { PostMessageW(hwnd_, WM_CLOSE, 0, 0); }
     void Focus() const { SetFocus(hwnd_); }
     void SetTitle(std::string_view title) { SetWindowTextW(hwnd_, detail::U82W(title).c_str()); }
     void SetTitleColor(const Color& color) {
