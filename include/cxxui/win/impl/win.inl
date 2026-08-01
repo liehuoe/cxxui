@@ -225,6 +225,7 @@ private:
             }
         }
 
+        auto res = static_cast<Derived*>(self)->OnWin32Msg(msg, wp, lp);
         switch (msg) {
             case WM_CREATE: {
                 static_cast<Derived*>(self)->OnCreated();
@@ -244,8 +245,8 @@ private:
                 SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
                 if (self->hwnd_) {
                     // self->hwnd_ 如果为空，代表子类正在析构，则不触发 OnClosed
-                    static_cast<Derived*>(self)->OnClosed();
                     self->hwnd_ = nullptr;
+                    static_cast<Derived*>(self)->OnClosed();
                 }
                 // 如果是主窗口, 则退出进程
                 if (hwnd == WinFactory::GetInstance().GetMainWindow()) {
@@ -289,7 +290,6 @@ private:
             default:
                 break;
         }
-        auto res = static_cast<Derived*>(self)->OnWin32Msg(msg, wp, lp);
         return res ? res.value() : DefWindowProcW(hwnd, msg, wp, lp);
     }
 };
